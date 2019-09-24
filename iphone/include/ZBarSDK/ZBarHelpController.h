@@ -20,9 +20,14 @@
 //
 //  http://sourceforge.net/projects/zbar
 //------------------------------------------------------------------------
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_8_0
+#define __ZBAR_USE_WKWEBVIEW__
+#endif
 
 #import <UIKit/UIKit.h>
-
+#ifdef __ZBAR_USE_WKWEBVIEW__
+#import <WebKit/WebKit.h>
+#endif
 @class ZBarHelpController;
 
 @protocol ZBarHelpDelegate
@@ -34,14 +39,21 @@
 
 
 // failure dialog w/a few useful tips
-
 @interface ZBarHelpController : UIViewController
+#ifdef __ZBAR_USE_WKWEBVIEW__
+                              < WKNavigationDelegate,
+#else
                               < UIWebViewDelegate,
+#endif
                                 UIAlertViewDelegate >
 {
     NSString *reason;
     id delegate;
+#ifdef __ZBAR_USE_WKWEBVIEW__
+    WKWebView *webView;
+#else
     UIWebView *webView;
+#endif
     UIToolbar *toolbar;
     UIBarButtonItem *doneBtn, *backBtn, *space;
     NSURL *linkURL;

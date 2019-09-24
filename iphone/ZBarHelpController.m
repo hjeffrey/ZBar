@@ -84,11 +84,29 @@
     view.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
                              UIViewAutoresizingFlexibleHeight);
 
+#ifdef __ZBAR_USE_WKWEBVIEW__
+    // 页面自适应屏幕 WKWebview 的 scaletofit
+    NSString *scaleToFitJS = @"var meta = document.createElement('meta'); meta.setAttribute('name', 'viewport'); meta.setAttribute('content', 'width=device-width'); document.getElementsByTagName('head')[0].appendChild(meta);";
+    WKUserScript *scaleToFitUS = [[WKUserScript alloc] initWithSource:scaleToFitJS injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES];
+    // 添加到用户控制器
+    WKUserContentController *wkUController = [[WKUserContentController alloc] init];
+    [wkUController addUserScript:scaleToFitUS];
+    
+    WKWebViewConfiguration *wkWebConfig = [[WKWebViewConfiguration alloc] init];
+    wkWebConfig.userContentController = wkUController;
+    webView = [[WKWebView alloc]
+               initWithFrame: CGRectMake(0, 0,
+                                         bounds.size.width,
+                                         bounds.size.height - 44)
+               configuration:wkWebConfig];
+    webView.navigationDelegate = self;
+#else
     webView = [[UIWebView alloc]
                   initWithFrame: CGRectMake(0, 0,
                                             bounds.size.width,
                                             bounds.size.height - 44)];
     webView.delegate = self;
+#endif
     webView.backgroundColor = [UIColor colorWithWhite: .125f
                                        alpha: 1];
     webView.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
@@ -154,14 +172,22 @@
     assert(webView);
     if(webView.loading)
         webView.hidden = YES;
+#ifdef __ZBAR_USE_WKWEBVIEW__
+    webView.navigationDelegate = self;
+#else
     webView.delegate = self;
+#endif
     [super viewWillAppear: animated];
 }
 
 - (void) viewWillDisappear: (BOOL) animated
 {
     [webView stopLoading];
+#ifdef __ZBAR_USE_WKWEBVIEW__
+    webView.navigationDelegate = nil;
+#else
     webView.delegate = nil;
+#endif
     [super viewWillDisappear: animated];
 }
 
@@ -210,12 +236,21 @@
         [self dismissModalViewControllerAnimated: YES];
 }
 
+#ifdef __ZBAR_USE_WKWEBVIEW__
+- (void) webView:(WKWebView *)view didFinishNavigation:(WKNavigation *)navigation
+#else
 - (void) webViewDidFinishLoad: (UIWebView*) view
+#endif
 {
     if(view.hidden) {
+#ifdef __ZBAR_USE_WKWEBVIEW__
+        [view evaluateJavaScript:[NSString stringWithFormat:
+        @"onZBarHelp({reason:\"%@\"});", reason] completionHandler:nil];
+#else
         [view stringByEvaluatingJavaScriptFromString:
             [NSString stringWithFormat:
                 @"onZBarHelp({reason:\"%@\"});", reason]];
+#endif
         [UIView beginAnimations: @"ZBarHelp"
                 context: nil];
         view.hidden = NO;
@@ -234,6 +269,17 @@
     }
 }
 
+#ifdef __ZBAR_USE_WKWEBVIEW__
+- (void)                  webView:(WKWebView *)webView
+  decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
+                  decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
+{
+    NSURL *url = [webView URL];
+    if([url isFileURL]) {
+        decisionHandler(WKNavigationActionPolicyAllow);
+        return;
+    }
+#else
 - (BOOL)             webView: (UIWebView*) view
   shouldStartLoadWithRequest: (NSURLRequest*) req
               navigationType: (UIWebViewNavigationType) nav
@@ -242,6 +288,7 @@
     if([url isFileURL])
         return(YES);
 
+#endif
     linkURL = [url retain];
     UIAlertView *alert =
         [[UIAlertView alloc]
@@ -253,7 +300,11 @@
     alert.delegate = self;
     [alert show];
     [alert release];
+#ifdef __ZBAR_USE_WKWEBVIEW__
+    decisionHandler(WKNavigationActionPolicyCancel);
+#else
     return(NO);
+#endif
 }
 
 - (void)     alertView: (UIAlertView*) view
