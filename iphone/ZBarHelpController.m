@@ -274,8 +274,15 @@
   decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
                   decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
-    NSURL *url = [webView URL];
-    if([url isFileURL]) {
+    NSURL *url = [navigationAction URL];
+    if (url.scheme
+        && !([url.scheme isEqualToString:@"http"]
+             || [url.scheme isEqualToString:@"https"]
+             || [url.scheme isEqualToString:@"ftp"])) {
+        // Protocol/URL-Scheme without http(s)
+        [[UIApplication sharedApplication] openURL:url];
+        decisionHandler(WKNavigationActionPolicyCancel);
+    } else if([url isFileURL]) {
         decisionHandler(WKNavigationActionPolicyAllow);
         return;
     }
