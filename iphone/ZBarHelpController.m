@@ -86,11 +86,11 @@
 
 #ifdef __ZBAR_USE_WKWEBVIEW__
     // 页面自适应屏幕 WKWebview 的 scaletofit
-    NSString *scaleToFitJS = @"var meta = document.createElement('meta'); meta.setAttribute('name', 'viewport'); meta.setAttribute('content', 'width=device-width'); document.getElementsByTagName('head')[0].appendChild(meta);";
-    WKUserScript *scaleToFitUS = [[WKUserScript alloc] initWithSource:scaleToFitJS injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES];
+//    NSString *scaleToFitJS = @"var meta = document.createElement('meta'); meta.setAttribute('name', 'viewport'); meta.setAttribute('content', 'width=device-width'); document.getElementsByTagName('head')[0].appendChild(meta);";
+//    WKUserScript *scaleToFitUS = [[WKUserScript alloc] initWithSource:scaleToFitJS injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES];
     // 添加到用户控制器
     WKUserContentController *wkUController = [[WKUserContentController alloc] init];
-    [wkUController addUserScript:scaleToFitUS];
+//    [wkUController addUserScript:scaleToFitUS];
     
     WKWebViewConfiguration *wkWebConfig = [[WKWebViewConfiguration alloc] init];
     wkWebConfig.userContentController = wkUController;
