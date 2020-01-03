@@ -277,8 +277,7 @@
     NSURL *url = [navigationAction URL];
     if (url.scheme
         && !([url.scheme isEqualToString:@"http"]
-             || [url.scheme isEqualToString:@"https"]
-             || [url.scheme isEqualToString:@"ftp"])) {
+             || [url.scheme isEqualToString:@"https"])) {
         // Protocol/URL-Scheme without http(s)
         [[UIApplication sharedApplication] openURL:url];
         decisionHandler(WKNavigationActionPolicyCancel);
